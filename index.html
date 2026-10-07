@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#090d12">
+    <title>Control Financiero</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>💰</text></svg>">
+    <style>
+        :root {
+            --bg: 
+#090d12;
+            --card: 
+#121820;
+            --tx: 
+#e2e8f0;
+            --mu: 
+#64748b;
+            --bd: 
+#1e293b;
+            --acc: 
+#94a3b8;
+            --ok: 
+#22c55e;
+            --ko: 
+#ef4444;
+        }
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--tx);
+  padding-bottom: 84px;
+}
+
+.wrap {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+h1 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--tx);
+}
+
+h2 {
+  font-size: 12px;
+  margin: 0 0 6px;
+  color: var(--mu);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.big {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.g {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mu {
+  color: var(--mu);
+  font-size: 12px;
+}
+
+.ok { color: var(--ok); }
+.ko { color: var(--ko); }
+
+input, select, button {
+  font: inherit;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--bd);
+  background: var(--bg);
+  color: var(--tx);
+  margin-bottom: 10px;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--acc);
+}
+
+button {
+  background: var(--tx);
+  color: var(--bg);
+  border: 0;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+button:active {
+  opacity: 0.8;
+}
+
+button.s {
+  background: transparent;
+  color: var(--tx);
+  border: 1px solid var(--bd);
+}
+
+button.sm {
+  width: auto;
+  padding: 4px 8px;
+  margin: 0;
+  font-size: 12px;
+}
+
+button.d {
+  background: transparent;
+  color: var(--ko);
+  border: 1px solid var(--bd);
+}
+
+nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--bd);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+nav a {
+  flex: 1;
+  text-align: center;
+  padding: 12px 4px;
+  font-size: 12px;
+  color: var(--mu);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+nav a.on {
+  color: var(--tx);
+  font-weight: 600;
+}
+
+.fab {
+  position: fixed;
+  right: 16px;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  font-size: 24px;
+  padding: 0;
+  background: var(--tx);
+  color: var(--bg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.it {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--bd);
+  gap: 8px;
+}
+
+.it:last-child {
+  border: 0;
+}
+
+.bar {
+  height: 4px;
+  background: var(--bd);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  background: var(--acc);
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  z-index: 9;
+}
+
+.modal > div {
+  background: var(--card);
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  border-radius: 16px 16px 0 0;
+  padding: 20px;
+  border: 1px solid var(--bd);
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+.hide { display: none; }
+</style>
+</head>
+
+<body>
+    <div id="app" class="wrap"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html>
