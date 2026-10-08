@@ -6,7 +6,11 @@ const SUPABASE_URL = 'https://ouleevsfvndqjiuojriq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_M42BXrQBrGzXIz78p6ga2Q_6kM-_GEh';
 
 // Se llama "sb" para no chocar con window.supabase (la librería del CDN)
-const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+const sb = window.supabase
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      auth: { storage: window.sessionStorage }
+    })
+  : null;
 
 // ==========================================
 // 2. HELPER FUNCTIONS & ESTADO
