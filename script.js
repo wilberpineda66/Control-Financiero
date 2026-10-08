@@ -77,10 +77,28 @@ async function initApp() {
         return alert('Error: No se pudo cargar la librería de Supabase. Revisa la conexión o los tags en tu index.html');
     }
 
+    // 1. Si la pestaña se cerró y NO es una simple recarga, cerrar sesión
+    const navType = performance.getEntriesByType('navigation')[0]?.type;
+    if (sessionStorage.getItem('cerrando') === '1' && navType !== 'reload') {
+        await sb.auth.signOut();
+        sessionStorage.removeItem(KEY_ULTIMA);
+    }
+    sessionStorage.removeItem('cerrando');
+
+    // 2. Si pasó demasiado tiempo sin actividad, cerrar sesión
+    const ultima = Number(sessionStorage.getItem(KEY_ULTIMA) || 0);
+    if (ultima && Date.now() - ultima > MAX_INACTIVO_MS) {
+        await sb.auth.signOut();
+        sessionStorage.removeItem(KEY_ULTIMA);
+    }
+
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user || null;
 
-    if (currentUser) await loadData();
+    if (currentUser) {
+        marcarActividad();
+        await loadData();
+    }
     render();
 
     sb.auth.onAuthStateChange((event, session) => {
@@ -94,6 +112,7 @@ async function initApp() {
         }, 0);
     });
 }
+
 
 async function loadData() {
     const { data, error } = await sb
@@ -669,7 +688,7 @@ async function registerUser() {
 }
 
 // ===== Cierre de sesión por inactividad =====
-const MAX_INACTIVO_MS = 5 * 60 * 1000; // 5 minutos (cámbialo a tu gusto)
+const MAX_INACTIVO_MS = 5 * 60 * 1000; // 5 minutos
 const KEY_ULTIMA = 'ultima_actividad';
 
 function marcarActividad() {
@@ -689,10 +708,13 @@ async function revisarInactividad() {
     document.addEventListener(ev, marcarActividad, { passive: true })
 );
 
-// Al volver a la pestaña (incluye Ctrl+Shift+T) se revisa
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') revisarInactividad();
 });
 
 setInterval(revisarInactividad, 30 * 1000);
-marcarActividad();
+
+// Marca que la pestaña se está cerrando (no aplica si va a bfcache)
+window.addEventListener('pagehide', e => {
+    if (!e.persisted) sessionStorage.setItem('cerrando', '1');
+});
