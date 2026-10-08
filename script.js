@@ -667,3 +667,32 @@ async function registerUser() {
     await msg('success', '¡Cuenta creada!', 'Tu cuenta se creó exitosamente. Ahora inicia sesión.');
     login();
 }
+
+// ===== Cierre de sesión por inactividad =====
+const MAX_INACTIVO_MS = 5 * 60 * 1000; // 5 minutos (cámbialo a tu gusto)
+const KEY_ULTIMA = 'ultima_actividad';
+
+function marcarActividad() {
+    sessionStorage.setItem(KEY_ULTIMA, Date.now());
+}
+
+async function revisarInactividad() {
+    if (!currentUser) return;
+    const ultima = Number(sessionStorage.getItem(KEY_ULTIMA) || 0);
+    if (ultima && Date.now() - ultima > MAX_INACTIVO_MS) {
+        await logout();
+        msg('info', 'Sesión cerrada', 'Se cerró por inactividad.');
+    }
+}
+
+['click', 'keydown', 'touchstart', 'scroll'].forEach(ev =>
+    document.addEventListener(ev, marcarActividad, { passive: true })
+);
+
+// Al volver a la pestaña (incluye Ctrl+Shift+T) se revisa
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') revisarInactividad();
+});
+
+setInterval(revisarInactividad, 30 * 1000);
+marcarActividad();
