@@ -389,16 +389,21 @@ function renderReportCharts() {
 function lista(st) {
     const rows = transactions.filter(t => t.status === st && t.date.startsWith(month));
     return `<div class="card">
-        <h2>${st === 'real' ? 'Historial de Movimientos' : 'Planificaciones'}</h2>
+        <h2>${st === 'real' ? 'Historial de Movimientos' : 'Planeaciones'}</h2>
         ${rows.length ? rows.map(r => `
-            <div class="it">
+            <div class="it" style="cursor:pointer;" onclick="editForm(${r.id})" title="Haz clic para editar">
                 <div>
-                    <b style="font-size:14px">${esc(r.note || r.category)}</b>
-                    <div class="mu">${esc(r.category)} · ${r.date}</div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:11px; padding:2px 6px; border-radius:4px; background:${r.type === 'ingreso' ? 'rgba(34,197,94,0.15); color:#22c55e;' : 'rgba(239,68,68,0.15); color:#ef4444;'}">
+                            ${r.type === 'ingreso' ? 'Ingreso (+)' : 'Gasto (-)'}
+                        </span>
+                        <b style="font-size:14px">${esc(r.category)}</b>
+                    </div>
+                    <div class="mu" style="margin-top:4px">${r.date}</div>
                 </div>
-                <div style="text-align:right">
+                <div style="text-align:right" onclick="event.stopPropagation()">
                     <b class="${r.type === 'gasto' ? 'ko' : 'ok'}">${r.type === 'gasto' ? '-' : '+'}${money(r.amount)}</b>
-                    <div style="display:flex;gap:4px;margin-top:4px;justify-content:flex-end">
+                    <div style="display:flex; gap:4px; margin-top:4px; justify-content:flex-end">
                         ${st === 'plan' ? `<button class="sm" onclick="done(${r.id})">Ejecutar</button>` : ''}
                         <button class="sm d" onclick="del(${r.id})">✕</button>
                     </div>
@@ -406,6 +411,7 @@ function lista(st) {
             </div>`).join('') : '<div class="mu">Sin registros.</div>'}
     </div>`;
 }
+
 
 function ajustes() {
     return `
@@ -424,36 +430,76 @@ function ajustes() {
 // ==========================================
 // 9. OPERACIONES CRUD
 // ==========================================
-function form() {
+function form(txToEdit = null) {
     const oldModal = $('#m');
     if (oldModal) oldModal.remove();
+
+    const isEditing = txToEdit !== null;
 
     const d = document.createElement('div');
     d.className = 'modal';
     d.id = 'm';
     d.innerHTML = `
     <div>
-        <h1 style="margin-bottom:14px" id="form-title">Registrar Operación</h1>
+        <h1 style="margin-bottom:14px" id="form-title">${isEditing ? 'Editar Operación' : 'Registrar Operación'}</h1>
         <select id="f_t" onchange="updateFormMode(this.value)">
-            <option value="gasto">Gasto (-)</option>
-            <option value="ingreso">Ingreso (+)</option>
+            <option value="gasto" ${isEditing && txToEdit.type === 'gasto' ? 'selected' : ''}>Gasto (-)</option>
+            <option value="ingreso" ${isEditing && txToEdit.type === 'ingreso' ? 'selected' : ''}>Ingreso (+)</option>
         </select>
         <select id="f_s">
-            <option value="real">Realizado hoy</option>
-            <option value="plan">Planeado / Futuro</option>
+            <option value="real" ${isEditing && txToEdit.status === 'real' ? 'selected' : ''}>Realizado hoy</option>
+            <option value="plan" ${isEditing && txToEdit.status === 'plan' ? 'selected' : ''}>Planeado / Futuro</option>
         </select>
-        <input id="f_a" type="number" inputmode="decimal" placeholder="Monto (ej. 50000)">
+        <input id="f_a" type="number" inputmode="decimal" placeholder="Monto (ej. 50000)" value="${isEditing ? txToEdit.amount : ''}">
         <select id="f_c"></select>
-        <input id="f_n" placeholder="Detalle">
-        <input id="f_d" type="date" value="${todayStr()}">
-        <button id="btn-save">Guardar</button>
+        <input id="f_n" placeholder="Detalle" value="${isEditing ? esc(txToEdit.note) : ''}">
+        <input id="f_d" type="date" value="${isEditing ? txToEdit.date : todayStr()}">
+        <button id="btn-save">${isEditing ? 'Actualizar Cambios' : 'Guardar'}</button>
         <button class="s" style="margin-top:8px" id="btn-cancel">Cancelar</button>
     </div>`;
     document.body.appendChild(d);
 
-    updateFormMode('gasto');
-    $('#btn-save').onclick = add;
+    const tipoActual = isEditing ? txToEdit.type : 'gasto';
+    updateFormMode(tipoActual);
+
+    // Si estamos editando, seleccionamos la categoría que tenía guardada
+    if (isEditing) {
+        $('#f_c').value = txToEdit.category;
+    }
+
+    $('#btn-save').onclick = () => isEditing ? updateTx(txToEdit.id) : add();
     $('#btn-cancel').onclick = () => $('#m').remove();
+}
+
+function editForm(id) {
+    const tx = transactions.find(t => t.id === id);
+    if (tx) form(tx);
+}
+
+async function updateTx(id) {
+    const a = parseFloat($('#f_a').value);
+    if (!(a > 0)) return msg('warning', 'Monto inválido', 'Ingrese un monto válido');
+
+    const date = $('#f_d').value;
+    if (!date) return msg('warning', 'Falta la fecha', 'Seleccione una fecha');
+
+    const updatedTx = {
+        type: $('#f_t').value,
+        status: $('#f_s').value,
+        amount: a,
+        category: $('#f_c').value,
+        note: $('#f_n').value.trim(),
+        date
+    };
+
+    const { error } = await sb.from('transacciones').update(updatedTx).eq('id', id);
+    if (error) return msg('error', 'Error al actualizar', error.message);
+
+    const m = $('#m');
+    if (m) m.remove();
+
+    await loadData();
+    render();
 }
 
 function updateFormMode(type) {
