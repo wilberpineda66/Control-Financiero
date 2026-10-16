@@ -452,7 +452,7 @@ function form(txToEdit = null) {
         </select>
         <input id="f_a" type="number" inputmode="decimal" placeholder="Monto (ej. 50000)" value="${isEditing ? txToEdit.amount : ''}">
         <select id="f_c"></select>
-        <input id="f_n" placeholder="Detalle" value="${isEditing ? esc(txToEdit.note) : ''}">
+        <textarea id="f_n" placeholder="Detalle (puedes escribir en varias líneas)" style="width:100%; height:80px; resize:vertical; padding:8px; border-radius:6px; background:inherit; color:inherit; font-family:inherit; border:1px solid var(--bd, #334155); box-sizing:border-box; margin-bottom:8px;">${isEditing ? esc(txToEdit.note) : ''}</textarea>
         <input id="f_d" type="date" value="${isEditing ? txToEdit.date : todayStr()}">
         <button id="btn-save">${isEditing ? 'Actualizar Cambios' : 'Guardar'}</button>
         <button class="s" style="margin-top:8px" id="btn-cancel">Cancelar</button>
