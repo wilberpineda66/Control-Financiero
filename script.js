@@ -426,7 +426,6 @@ function ajustes() {
         <button class="s" style="background:#e53e3e;color:white;border:none" onclick="logout()">Cerrar sesión</button>
     </div>`;
 }
-
 // ==========================================
 // 9. OPERACIONES CRUD
 // ==========================================
@@ -434,7 +433,8 @@ function form(txToEdit = null) {
     const oldModal = $('#m');
     if (oldModal) oldModal.remove();
 
-    const isEditing = txToEdit !== null;
+    // Si txToEdit no tiene ID o es null, significa que es NUEVO registro
+    const isEditing = txToEdit !== null && txToEdit.id !== undefined;
 
     const d = document.createElement('div');
     d.className = 'modal';
@@ -467,9 +467,11 @@ function form(txToEdit = null) {
         $('#f_c').value = txToEdit.category;
     }
 
+    // Aquí está la clave: si está editando llama a updateTx, si es nuevo llama a add
     $('#btn-save').onclick = () => isEditing ? updateTx(txToEdit.id) : add();
     $('#btn-cancel').onclick = () => $('#m').remove();
 }
+
 
 function editForm(id) {
     const tx = transactions.find(t => t.id === id);
